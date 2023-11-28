@@ -1,99 +1,95 @@
-const {
-    generateRegistrationOptions,
-    verifyRegistrationResponse,
-    generateAuthenticationOptions,
-    verifyAuthenticationResponse,
-  } = require('@simplewebauthn/server');
-  
-  const rpID = 'localhost'; // Replace with your domain in production
-  const origin = `https://${rpID}`;
-  
-  // This should interface with your user database
-  const users = {}; // Placeholder for user storage
-  
-  function getRegistrationOptions(userID) {
-    const user = users[userID];
-  
+const { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse } = require('@simplewebauthn/server');
+const User = require('./models/User');
+
+const rpID = 'example.com'; // Replace with your domain
+const rpName = 'Example Co'; // Replace with your organization name
+
+// Function to get registration options
+async function getRegistrationOptions(userId) {
+    const user = await User.findById(userId);
     const options = generateRegistrationOptions({
-      rpName: 'My NodeJS Website',
-      rpID,
-      userID: user.id,
-      userName: user.username,
-      userDisplayName: user.displayName,
-      attestationType: 'indirect',
-      authenticatorSelection: {
-        userVerification: 'preferred',
-      },
+        rpName,
+        rpID,
+        userID: user._id.toString(),
+        userName: user.username,
+        // Add other necessary options
     });
-  
     return options;
-  }
-  
-  async function verifyRegistration(userID, credential) {
-    const user = users[userID];
-    const expectedChallenge = user.currentChallenge;
-  
-    try {
-      const verification = await verifyRegistrationResponse({
-        credential,
-        expectedChallenge,
-        expectedOrigin: origin,
+}
+
+// Function to verify registration
+async function verifyRegistration(userId, response) {
+    const user = await User.findById(userId);
+    const verification = verifyRegistrationResponse({
+        credential: response,
+        expectedChallenge: /* the challenge you stored during generation */,
+        expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
-      });
-  
-      // Add the verified authenticator to the user's account
-      user.authenticators.push(verification.registrationInfo);
-  
-      return true;
-    } catch (error) {
-      // Handle error
-      return false;
+        // Add other necessary verification parameters
+    });
+
+    if (verification.verified) {
+        user.authenticators.push({
+            credentialID: verification.registrationInfo.credentialID,
+            credentialPublicKey: verification.registrationInfo.credentialPublicKey,
+            counter: verification.registrationInfo.counter,
+        });
+        await user.save();
     }
-  }
-  
-  function getAuthenticationOptions(userID) {
-    const user = users[userID];
-  
+
+    return verification.verified;
+}
+
+// Function to get authentication options
+async function getAuthenticationOptions(userId) {
+    const user = await User.findById(userId);
+    const authenticators = user.authenticators.map(auth => ({
+        credentialID: auth.credentialID,
+        // Add other necessary fields
+    }));
+
     const options = generateAuthenticationOptions({
-      allowCredentials: user.authenticators.map(authenticator => ({
-        id: authenticator.credentialPublicKey,
-        type: 'public-key',
-        transports: authenticator.transports,
-      })),
-      userVerification: 'preferred',
-      rpID,
+        allowCredentials: authenticators,
+        userVerification: 'preferred',
+        // Add other necessary options
     });
-  
+
     return options;
-  }
-  
-  async function verifyAuthentication(userID, credential) {
-    const user = users[userID];
-    const expectedChallenge = user.currentChallenge;
-    const authenticator = user.authenticators.find(
-      auth => auth.credentialID === credential.id
-    );
-  
-    try {
-      const verification = await verifyAuthenticationResponse({
-        credential,
-        expectedChallenge,
-        expectedOrigin: origin,
-        expectedRPID: rpID,
-        authenticator,
-      });
-  
-      return verification.verified;
-    } catch (error) {
-      // Handle error
-      return false;
+}
+
+// Function to verify authentication
+async function verifyAuthentication(userId, response) {
+    const user = await User.findById(userId);
+    const expectedAuthenticator = user.authenticators.find(auth => auth.credentialID.equals(response.rawId));
+
+    if (!expectedAuthenticator) {
+        throw new Error('Authenticator not found');
     }
-  }
-  
-  module.exports = {
+
+    const verification = verifyAuthenticationResponse({
+        credential: response,
+        expectedAuthenticator: {
+            credentialPublicKey: expectedAuthenticator.credentialPublicKey,
+            counter: expectedAuthenticator.counter,
+            // Add other necessary fields
+        },
+        expectedChallenge: /* the challenge you stored during generation */,
+        expectedOrigin: `https://${rpID}`,
+        expectedRPID: rpID,
+        // Add other necessary verification parameters
+    });
+
+    if (verification.verified) {
+        expectedAuthenticator.counter = verification.authenticationInfo.newCounter;
+        await user.save();
+    }
+
+    return verification.verified;
+}
+
+module.exports = {
     getRegistrationOptions,
     verifyRegistration,
     getAuthenticationOptions,
     verifyAuthentication,
-  };
-  
+};
