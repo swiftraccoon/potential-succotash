@@ -4,8 +4,6 @@ const mongoose = require('mongoose');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const server = https.createServer(options, app);
-const io = require('socket.io')(server);
 const app = express();
 
 const homeRoute = require('./routes/home');
@@ -50,12 +48,15 @@ const options = {
   cert: fs.readFileSync(path.join(__dirname, 'certs/server.cert'))
 };
 
+const server = https.createServer(options, app);
+const io = require('socket.io')(server);
+
 io.on('connection', (socket) => {
   console.log('a user connected');
   // Implement real-time logic here
 });
 
 // Start HTTPS server on port 443
-server.listen(443, () => {
+server.listen(3002, () => {
   console.log('HTTPS server running on port 443');
 });

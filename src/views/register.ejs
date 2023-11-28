@@ -1,15 +1,49 @@
-import { startRegistration } from '@simplewebauthn/browser';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register</title>
+</head>
+<body>
+    <h2>Register</h2>
+    <form id="registerForm">
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <input type="email" id="email" name="email" placeholder="Email" required>
+        <!-- Add other fields as necessary -->
+        <button type="button" onclick="register()">Register</button>
+    </form>
 
-<script>
-    async function register() {
-    const registrationOptions = await fetch('/auth/register-options').then(res => res.json());
+    <script>
+        async function register() {
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email })
+            });
+            const options = await response.json();
 
-    const attestationResponse = await startRegistration(registrationOptions);
+            const credential = await navigator.credentials.create({ publicKey: options });
+            const verificationResponse = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(credential)
+            });
 
-    await fetch('/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(attestationResponse),
-    });
-    }
-</script>
+            const verificationResult = await verificationResponse.json();
+            if (verificationResult.success) {
+                // Handle successful registration
+                window.location.href = '/login'; // Redirect to login page
+            } else {
+                // Handle registration failure
+                alert('Registration failed');
+            }
+        }
+    </script>
+</body>
+</html>

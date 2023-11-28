@@ -1,15 +1,47 @@
-import { startAuthentication } from '@simplewebauthn/browser';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="username" name="username" placeholder="Username" required>
+        <!-- Add other fields as necessary -->
+        <button type="button" onclick="login()">Login</button>
+    </form>
 
-<script>
-    async function login() {
-    const authenticationOptions = await fetch('/auth/login-options').then(res => res.json());
+    <script>
+        async function login() {
+            const username = document.getElementById('username').value;
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            });
+            const options = await response.json();
 
-    const assertionResponse = await startAuthentication(authenticationOptions);
+            const assertion = await navigator.credentials.get({ publicKey: options });
+            const verificationResponse = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(assertion)
+            });
 
-    await fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(assertionResponse),
-    });
-    }
-</script>
+            const verificationResult = await verificationResponse.json();
+            if (verificationResult.success) {
+                // Handle successful login
+                window.location.href = '/home'; // Redirect to home page
+            } else {
+                // Handle login failure
+                alert('Login failed');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -22,7 +22,7 @@ async function verifyRegistration(userId, response) {
     const user = await User.findById(userId);
     const verification = verifyRegistrationResponse({
         credential: response,
-        expectedChallenge: /* the challenge you stored during generation */,
+        expectedChallenge: '',
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
         // Add other necessary verification parameters
@@ -73,7 +73,7 @@ async function verifyAuthentication(userId, response) {
             counter: expectedAuthenticator.counter,
             // Add other necessary fields
         },
-        expectedChallenge: /* the challenge you stored during generation */,
+        expectedChallenge: '',
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
         // Add other necessary verification parameters
