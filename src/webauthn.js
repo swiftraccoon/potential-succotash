@@ -10,7 +10,7 @@ async function getRegistrationOptions(userId) {
     const options = generateRegistrationOptions({
         rpName,
         rpID,
-        userID: user._id.toString(),
+        userID: user._id,
         userName: user.username,
         // Add other necessary options
     });

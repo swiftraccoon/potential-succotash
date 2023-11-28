@@ -13,11 +13,16 @@ router.post('/register', async (req, res) => {
     try {
         const user = new User({ /* user details from req.body */ });
         await user.save();
-        console.log(user);
-        const options = await webauthn.getRegistrationOptions(user.id);
-        res.json(options); // Or handle registration logic here
+
+        // Convert user ID to byte array
+        const userId = Array.from(Buffer.from(user._id.toString(), 'hex'));
+
+        const options = await webauthn.getRegistrationOptions({ id: userId, /* other user details */ });
+        res.json(options);
+        res.json({ success: true, message: "Registration successful" });
     } catch (error) {
-        res.status(500).send('Error during registration');
+        // If an error occurs
+        res.status(500).json({ success: false, message: "Error during registration" });
     }
 });
 
