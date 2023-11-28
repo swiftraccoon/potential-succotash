@@ -5,6 +5,7 @@ const User = require('../models/User');
 
 // Endpoint to get authentication options
 router.get('/login', async (req, res) => {
+    res.render('login');
     const user = await User.findOne({ /* criteria to find the user */ });
     if (!user) {
         return res.status(404).send('User not found');

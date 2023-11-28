@@ -5,6 +5,7 @@ const User = require('../models/User');
 
 // Endpoint to get registration options
 router.get('/register', async (req, res) => {
+    res.render('register');
     const user = new User({ /* user details */ });
     await user.save();
     const options = await webauthn.getRegistrationOptions(user.id);

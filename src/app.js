@@ -14,7 +14,7 @@ const subscriptionRoute = require('./routes/subscription');
 
 // MongoDB connection
 const mongoDBUrl = 'mongodb://root:example@localhost:27017/mydatabase?authSource=admin';
-mongoose.connect(mongoDBUrl, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongoDBUrl)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
