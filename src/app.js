@@ -13,7 +13,8 @@ const searchRoute = require('./routes/search');
 const subscriptionRoute = require('./routes/subscription');
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost/yourDatabaseName', { useNewUrlParser: true, useUnifiedTopology: true })
+const mongoDBUrl = 'mongodb://root:example@localhost:27017/mydatabase?authSource=admin';
+mongoose.connect(mongoDBUrl, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
