@@ -1,15 +1,23 @@
 const express = require('express');
 const session = require('express-session');
+const mongoose = require('mongoose');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-
+const server = https.createServer(options, app);
+const io = require('socket.io')(server);
 const app = express();
+
 const homeRoute = require('./routes/home');
 const registrationRoute = require('./routes/registration');
 const loginRoute = require('./routes/login');
 const searchRoute = require('./routes/search');
 const subscriptionRoute = require('./routes/subscription');
+
+// MongoDB connection
+mongoose.connect('mongodb://localhost/yourDatabaseName', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
@@ -42,7 +50,12 @@ const options = {
   cert: fs.readFileSync(path.join(__dirname, 'certs/server.cert'))
 };
 
-// Start HTTPS server
-https.createServer(options, app).listen(443, () => {
+io.on('connection', (socket) => {
+  console.log('a user connected');
+  // Implement real-time logic here
+});
+
+// Start HTTPS server on port 443
+server.listen(443, () => {
   console.log('HTTPS server running on port 443');
 });

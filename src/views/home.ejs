@@ -1,1 +1,23 @@
-home.ejs
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Add your head content here -->
+</head>
+<body>
+  <div>
+    <!-- Other content -->
+    <table>
+      <% transcriptions.forEach(function(transcription) { %>
+        <tr>
+          <td><%= transcription.dateTime %></td>
+          <td><!-- Play button --></td>
+          <td><%= transcription.talkgroupID %></td>
+          <td><%= transcription.radioID %></td>
+          <td><%= transcription.transcriptionText %></td>
+        </tr>
+      <% }) %>
+    </table>
+  </div>
+  <!-- Add your scripts here -->
+</body>
+</html>
