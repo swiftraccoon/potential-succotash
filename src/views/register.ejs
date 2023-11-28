@@ -7,27 +7,28 @@
 <body>
     <h2>Register</h2>
     <form id="registerForm">
-        <input type="text" id="username" name="username" placeholder="Username" required>
-        <input type="email" id="email" name="email" placeholder="Email" required>
-        <!-- Add other fields as necessary -->
+        <input type="text" id="firstname" name="firstname" placeholder="firstname" required><br />
+        <input type="text" id="lastname" name="lastname" placeholder="lastname" required><br />
+        <input type="email" id="email" name="email" placeholder="Email" required><br />
         <button type="button" onclick="register()">Register</button>
     </form>
 
     <script>
         async function register() {
-            const username = document.getElementById('username').value;
+            const firstname = document.getElementById('firstname').value;
+            const lastname = document.getElementById('lastname').value;
             const email = document.getElementById('email').value;
-            const response = await fetch('/register', {
+            const response = await fetch('/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username, email })
+                body: JSON.stringify({ firstname, lastname, email })
             });
             const options = await response.json();
 
             const credential = await navigator.credentials.create({ publicKey: options });
-            const verificationResponse = await fetch('/register', {
+            const verificationResponse = await fetch('/auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -38,7 +39,7 @@
             const verificationResult = await verificationResponse.json();
             if (verificationResult.success) {
                 // Handle successful registration
-                window.location.href = '/login'; // Redirect to login page
+                window.location.href = '/auth/login'; // Redirect to login page
             } else {
                 // Handle registration failure
                 alert('Registration failed');
