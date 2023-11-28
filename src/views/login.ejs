@@ -1,0 +1,15 @@
+import { startAuthentication } from '@simplewebauthn/browser';
+
+<script>
+    async function login() {
+    const authenticationOptions = await fetch('/auth/login-options').then(res => res.json());
+
+    const assertionResponse = await startAuthentication(authenticationOptions);
+
+    await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assertionResponse),
+    });
+    }
+</script>

@@ -1,0 +1,15 @@
+import { startRegistration } from '@simplewebauthn/browser';
+
+<script>
+    async function register() {
+    const registrationOptions = await fetch('/auth/register-options').then(res => res.json());
+
+    const attestationResponse = await startRegistration(registrationOptions);
+
+    await fetch('/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(attestationResponse),
+    });
+    }
+</script>
