@@ -13,36 +13,41 @@
         <button type="button" onclick="register()">Register</button>
     </form>
 
+    <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
     <script>
         async function register() {
-            const firstname = document.getElementById('firstname').value;
-            const lastname = document.getElementById('lastname').value;
-            const email = document.getElementById('email').value;
-            const response = await fetch('/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ firstname, lastname, email })
-            });
-            const options = await response.json();
+            try {
+                const firstname = document.getElementById('firstname').value;
+                const lastname = document.getElementById('lastname').value;
+                const email = document.getElementById('email').value;
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ firstname, lastname, email })
+                });
+                const options = await response.json();
 
-            const credential = await navigator.credentials.create({ publicKey: options });
-            const verificationResponse = await fetch('/auth/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(credential)
-            });
+                const registrationResponse = await window.SimpleWebAuthnBrowser.startRegistration(options);
 
-            const verificationResult = await verificationResponse.json();
-            if (verificationResult.success) {
-                // Handle successful registration
-                window.location.href = '/auth/login'; // Redirect to login page
-            } else {
-                // Handle registration failure
-                alert('Registration failed');
+                const verificationResponse = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registrationResponse)
+                });
+
+                const verificationResult = await verificationResponse.json();
+                if (verificationResult.success) {
+                    window.location.href = '/auth/login'; // Redirect to login page
+                } else {
+                    alert('Registration failed');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Registration failed: ' + error.message);
             }
         }
     </script>

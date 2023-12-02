@@ -12,34 +12,39 @@
         <button type="button" onclick="login()">Login</button>
     </form>
 
+    <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
     <script>
         async function login() {
-            const username = document.getElementById('username').value;
-            const response = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username })
-            });
-            const options = await response.json();
+            try {
+                const email = document.getElementById('email').value;
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email })
+                });
+                const options = await response.json();
 
-            const assertion = await navigator.credentials.get({ publicKey: options });
-            const verificationResponse = await fetch('/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(assertion)
-            });
+                const authenticationResponse = await window.SimpleWebAuthnBrowser.startAuthentication(options);
 
-            const verificationResult = await verificationResponse.json();
-            if (verificationResult.success) {
-                // Handle successful login
-                window.location.href = '/home'; // Redirect to home page
-            } else {
-                // Handle login failure
-                alert('Login failed');
+                const verificationResponse = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(authenticationResponse)
+                });
+
+                const verificationResult = await verificationResponse.json();
+                if (verificationResult.success) {
+                    window.location.href = '/home'; // Redirect to home page
+                } else {
+                    alert('Login failed');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Login failed: ' + error.message);
             }
         }
     </script>

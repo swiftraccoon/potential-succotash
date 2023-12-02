@@ -59,5 +59,5 @@ io.on('connection', (socket) => {
 
 // Start HTTPS server on port 443
 server.listen(3002, () => {
-  console.log('HTTPS server running on port 443');
+  console.log('Server is now listening on https://localhost:3002');
 });

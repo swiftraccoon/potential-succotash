@@ -1,31 +1,40 @@
 const { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse } = require('@simplewebauthn/server');
 const User = require('./models/User');
 
-const rpID = 'example.com'; // Replace with your domain
-const rpName = 'Example Co'; // Replace with your organization name
+const rpID = 'localhost:3002'; // Replace with your domain
+const rpName = 'Localhost Dev'; // Replace with your organization name
 
-// Function to get registration options
-async function getRegistrationOptions(userId) {
-    const user = await User.findById(userId);
+async function getRegistrationOptions(user) {
     const options = generateRegistrationOptions({
-        rpName,
-        rpID,
-        userID: user._id,
-        userName: user.username,
-        // Add other necessary options
+        rpName: rpName,
+        rpID: rpID,
+        userID: user._id.toString(),
+        userName: user.email,
+        userDisplayName: `${user.firstName} ${user.lastName}`, // Add user's display name
+        authenticatorSelection: {
+            authenticatorAttachment: 'platform', // or 'cross-platform'
+            requireResidentKey: false,
+            userVerification: 'preferred' // or 'required', 'discouraged'
+        },
+        attestation: 'direct', // or 'indirect', 'none'
+        excludeCredentials: user.authenticators.map(auth => ({
+            id: auth.credentialID,
+            type: 'public-key',
+            transports: ['usb', 'nfc', 'ble'], // Specify allowed transports
+        })),
+        // ... other options as needed
     });
+
     return options;
 }
 
-// Function to verify registration
-async function verifyRegistration(userId, response) {
-    const user = await User.findById(userId);
+async function verifyRegistration(user, response) {
     const verification = verifyRegistrationResponse({
         credential: response,
-        expectedChallenge: '',
+        expectedChallenge: 'YOUR_STORED_CHALLENGE', // Retrieve the stored challenge
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
-        // Add other necessary verification parameters
+        // ... other necessary verification parameters
     });
 
     if (verification.verified) {

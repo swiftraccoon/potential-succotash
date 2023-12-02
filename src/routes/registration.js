@@ -8,21 +8,38 @@ router.get('/register', async (req, res) => {
     res.render('register');
 });
 
-// Endpoint to handle registration form submission
+// // Endpoint to handle registration form submission
+// router.post('/register', async (req, res) => {
+//     try {
+//         const user = new User({ /* user details from req.body */ });
+//         await user.save();
+
+//         // Convert user ID to byte array
+//         const userId = Array.from(Buffer.from(user._id.toString(), 'hex'));
+
+//         const options = await webauthn.getRegistrationOptions({ id: userId, /* other user details */ });
+//         res.json(options);
+//         res.json({ success: true, message: "Registration successful" });
+//     } catch (error) {
+//         // If an error occurs
+//         res.status(500).json({ success: false, message: "Error during registration", error: error.message });
+//     }
+// });
+
 router.post('/register', async (req, res) => {
     try {
-        const user = new User({ /* user details from req.body */ });
+        const { firstname, lastname, email } = req.body;
+        const user = new User({
+            firstName: firstname,
+            lastName: lastname,
+            email: email,
+        });
         await user.save();
 
-        // Convert user ID to byte array
-        const userId = Array.from(Buffer.from(user._id.toString(), 'hex'));
-
-        const options = await webauthn.getRegistrationOptions({ id: userId, /* other user details */ });
+        const options = await webauthn.getRegistrationOptions(user);
         res.json(options);
-        res.json({ success: true, message: "Registration successful" });
     } catch (error) {
-        // If an error occurs
-        res.status(500).json({ success: false, message: "Error during registration" });
+        res.status(500).json({ success: false, message: "Error during registration", error: error.message });
     }
 });
 
