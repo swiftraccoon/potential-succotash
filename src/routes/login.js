@@ -34,6 +34,7 @@ router.post('/login/response', async (req, res) => {
         return res.status(404).json({ success: false, message: 'User not found' });
     }
     console.log("login/login/response/user:", user)
+    console.log("login/login/response/response:", response)
     try {
         const result = await webauthn.verifyAuthentication(user.id, response);
         console.log("login/login/response/result:", result)

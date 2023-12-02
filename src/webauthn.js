@@ -98,7 +98,7 @@ async function verifyAuthentication(userId, response) {
     const storedChallenge = user.currentChallenge;
 
     const verification = verifyAuthenticationResponse({
-        credential: response,
+        response: response,
         expectedChallenge: storedChallenge,
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
