@@ -4,7 +4,6 @@ const authenticatorSchema = new mongoose.Schema({
     credentialID: Buffer,
     credentialPublicKey: Buffer,
     counter: Number,
-    // Add other fields as necessary
 });
 
 const userSchema = new mongoose.Schema({
@@ -13,7 +12,7 @@ const userSchema = new mongoose.Schema({
   username: String,
   email: String,
   authenticators: [authenticatorSchema],
-  // Add other necessary fields
+  currentChallenge: String,
 });
 
 module.exports = mongoose.model('User', userSchema);

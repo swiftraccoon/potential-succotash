@@ -37,24 +37,24 @@
                 const authenticationResponse = await window.SimpleWebAuthnBrowser.startAuthentication(options);
                 console.log("login/script/step2/authenticationResponse:", authenticationResponse);
 
-                // ... rest of the login function ...
+                // Send authentication response for verification
+                const verificationResponse = await fetch('/auth/login/response', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, response: authenticationResponse })
+                });
+
+                const verificationResult = await verificationResponse.json();
+                if (verificationResult.success) {
+                    // Redirect to home page on successful login
+                    window.location.href = '/';
+                } else {
+                    alert('Login failed');
+                }
             } catch (error) {
                 console.error(error);
                 alert('Login failed: ' + error.message);
             }
-        }
-
-        function arrayBufferToBase64(buffer) {
-            let binary = '';
-            const bytes = new Uint8Array(buffer);
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            console.log("Converted binary:", binary); // Debugging line
-            const base64 = window.btoa(binary);
-            console.log("Converted Base64:", base64); // Debugging line
-            return base64;
         }
     </script>
 </body>

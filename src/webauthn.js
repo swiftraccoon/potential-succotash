@@ -84,8 +84,9 @@ async function getAuthenticationOptions(userId) {
         userVerification: 'preferred',
     });
 
-    // Store options for later retrieval
-    storeOptionsForUser(userId, options);
+    // Store the challenge in the database
+    user.currentChallenge = options.challenge;
+    await user.save();
 
     return options;
 }
@@ -93,11 +94,12 @@ async function getAuthenticationOptions(userId) {
 // Function to verify authentication
 async function verifyAuthentication(userId, response) {
     const user = await User.findById(userId);
-    const storedOptions = retrieveOptionsForUser(userId);
+    // Retrieve the stored challenge from the database
+    const storedChallenge = user.currentChallenge;
 
     const verification = verifyAuthenticationResponse({
         credential: response,
-        expectedChallenge: storedOptions.challenge,
+        expectedChallenge: storedChallenge,
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
         authenticator: user.authenticators.find(auth => auth.credentialID.equals(response.id)),
@@ -105,6 +107,7 @@ async function verifyAuthentication(userId, response) {
 
     if (verification.verified) {
         expectedAuthenticator.counter = verification.authenticationInfo.newCounter;
+        user.currentChallenge = null;
         await user.save();
     }
 
