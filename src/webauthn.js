@@ -57,16 +57,35 @@ async function verifyRegistration(user, response, storedChallenge) {
 }
 
 // Function to get authentication options
+// async function getAuthenticationOptions(userId) {
+//     const user = await User.findById(userId);
+//     const authenticators = user.authenticators.map(auth => ({
+//         credentialID: auth.credentialID,
+//     }));
+
+//     const options = generateAuthenticationOptions({
+//         allowCredentials: authenticators,
+//         userVerification: 'preferred',
+//     });
+
+//     return options;
+// }
+
+// Function to get authentication options
 async function getAuthenticationOptions(userId) {
     const user = await User.findById(userId);
-    const authenticators = user.authenticators.map(auth => ({
-        credentialID: auth.credentialID,
-    }));
-
     const options = generateAuthenticationOptions({
-        allowCredentials: authenticators,
+        rpID,
+        allowCredentials: user.authenticators.map(auth => ({
+            id: auth.credentialID,
+            type: 'public-key',
+            transports: ['internal']
+        })),
         userVerification: 'preferred',
     });
+
+    // Store options for later retrieval
+    storeOptionsForUser(userId, options);
 
     return options;
 }
@@ -74,21 +93,14 @@ async function getAuthenticationOptions(userId) {
 // Function to verify authentication
 async function verifyAuthentication(userId, response) {
     const user = await User.findById(userId);
-    const expectedAuthenticator = user.authenticators.find(auth => auth.credentialID.equals(response.rawId));
-
-    if (!expectedAuthenticator) {
-        throw new Error('Authenticator not found');
-    }
+    const storedOptions = retrieveOptionsForUser(userId);
 
     const verification = verifyAuthenticationResponse({
         credential: response,
-        expectedAuthenticator: {
-            credentialPublicKey: expectedAuthenticator.credentialPublicKey,
-            counter: expectedAuthenticator.counter,
-        },
-        expectedChallenge: '',
+        expectedChallenge: storedOptions.challenge,
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
+        authenticator: user.authenticators.find(auth => auth.credentialID.equals(response.id)),
     });
 
     if (verification.verified) {
