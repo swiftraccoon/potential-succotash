@@ -20,25 +20,25 @@
                 const firstname = document.getElementById('firstname').value;
                 const lastname = document.getElementById('lastname').value;
                 const email = document.getElementById('email').value;
+    
+                // Fetch registration options
                 const response = await fetch('/auth/register', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ firstname, lastname, email })
                 });
                 const options = await response.json();
-
+    
+                // Start registration
                 const registrationResponse = await window.SimpleWebAuthnBrowser.startRegistration(options);
-
-                const verificationResponse = await fetch('/auth/register', {
+    
+                // Send registration response to server
+                const verificationResponse = await fetch('/auth/register/response', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(registrationResponse)
                 });
-
+    
                 const verificationResult = await verificationResponse.json();
                 if (verificationResult.success) {
                     window.location.href = '/auth/login'; // Redirect to login page

@@ -8,24 +8,6 @@ router.get('/register', async (req, res) => {
     res.render('register');
 });
 
-// // Endpoint to handle registration form submission
-// router.post('/register', async (req, res) => {
-//     try {
-//         const user = new User({ /* user details from req.body */ });
-//         await user.save();
-
-//         // Convert user ID to byte array
-//         const userId = Array.from(Buffer.from(user._id.toString(), 'hex'));
-
-//         const options = await webauthn.getRegistrationOptions({ id: userId, /* other user details */ });
-//         res.json(options);
-//         res.json({ success: true, message: "Registration successful" });
-//     } catch (error) {
-//         // If an error occurs
-//         res.status(500).json({ success: false, message: "Error during registration", error: error.message });
-//     }
-// });
-
 router.post('/register', async (req, res) => {
     try {
         const { firstname, lastname, email } = req.body;
@@ -35,13 +17,33 @@ router.post('/register', async (req, res) => {
             email: email,
         });
         await user.save();
+        console.log("registration/register/user:", user)
 
         const options = await webauthn.getRegistrationOptions(user);
+        console.log("registration/register/options:", options)
         res.json(options);
     } catch (error) {
         res.status(500).json({ success: false, message: "Error during registration", error: error.message });
     }
 });
 
+router.post('/register/response', async (req, res) => {
+    try {
+        const user = await User.findById(req.body.userId); // Adjust as needed to find the user
+        const response = req.body;
+        console.log("registration/register/response/user:", user)
+        console.log("registration/register/response/response:", response)
+
+        const verification = await webauthn.verifyRegistration(user, response);
+        console.log("registration/register/response/verification:", verification)
+        if (verification) {
+            res.json({ success: true, message: "Registration successful" });
+        } else {
+            res.status(400).json({ success: false, message: "Registration failed" });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Error during registration", error: error.message });
+    }
+});
 
 module.exports = router;

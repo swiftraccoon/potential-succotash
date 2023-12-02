@@ -1,7 +1,7 @@
 const { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse } = require('@simplewebauthn/server');
 const User = require('./models/User');
 
-const rpID = 'localhost:3002'; // Replace with your domain
+const rpID = 'localhost'; // Replace with your domain
 const rpName = 'Localhost Dev'; // Replace with your organization name
 
 async function getRegistrationOptions(user) {
@@ -36,6 +36,7 @@ async function verifyRegistration(user, response) {
         expectedRPID: rpID,
         // ... other necessary verification parameters
     });
+    console.log("webauthn/verifyRegistration/verification: ", verification)
 
     if (verification.verified) {
         user.authenticators.push({
