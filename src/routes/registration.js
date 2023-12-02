@@ -29,14 +29,16 @@ router.post('/register', async (req, res) => {
 
 router.post('/register/response', async (req, res) => {
     try {
-        const user = await User.findById(req.body.userId); // Adjust as needed to find the user
-        const response = req.body;
+        const { email, response } = req.body;
+        let user = await User.findOne({ email: email });
         console.log("registration/register/response/user:", user)
+        console.log("registration/register/response/email:", email)
         console.log("registration/register/response/response:", response)
 
         const verification = await webauthn.verifyRegistration(user, response);
         console.log("registration/register/response/verification:", verification)
         if (verification) {
+            await user.save();
             res.json({ success: true, message: "Registration successful" });
         } else {
             res.status(400).json({ success: false, message: "Registration failed" });

@@ -36,7 +36,7 @@
                 const verificationResponse = await fetch('/auth/register/response', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(registrationResponse)
+                    body: JSON.stringify({ email, firstName: firstname, lastName: lastname, response: registrationResponse })
                 });
     
                 const verificationResult = await verificationResponse.json();

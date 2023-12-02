@@ -30,7 +30,7 @@ async function getRegistrationOptions(user) {
 
 async function verifyRegistration(user, response) {
     const verification = verifyRegistrationResponse({
-        credential: response,
+        response: response,
         expectedChallenge: 'YOUR_STORED_CHALLENGE', // Retrieve the stored challenge
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
