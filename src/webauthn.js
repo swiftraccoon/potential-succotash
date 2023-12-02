@@ -1,21 +1,19 @@
 const { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse } = require('@simplewebauthn/server');
 const User = require('./models/User');
 
-const rpID = 'localhost:3002'; // Replace with your domain
+const rpID = 'localhost'; // Replace with your domain
 const rpName = 'Localhost Dev'; // Replace with your organization name
 
-async function getRegistrationOptions(user) {
+async function getRegistrationOptions({user, authenticatorSelection}) {
+    console.log("webauthn/getRegistrationOptions/user:", user);
+    console.log("webauthn/getRegistrationOptions/authenticatorSelection:", authenticatorSelection);
     const options = generateRegistrationOptions({
         rpName: rpName,
         rpID: rpID,
         userID: user._id.toString(),
         userName: user.email,
         userDisplayName: `${user.firstName} ${user.lastName}`, // Add user's display name
-        authenticatorSelection: {
-            authenticatorAttachment: 'platform', // or 'cross-platform'
-            requireResidentKey: false,
-            userVerification: 'preferred' // or 'required', 'discouraged'
-        },
+        authenticatorSelection: authenticatorSelection,
         attestation: 'direct', // or 'indirect', 'none'
         excludeCredentials: user.authenticators.map(auth => ({
             id: auth.credentialID,

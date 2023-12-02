@@ -10,6 +10,11 @@
         <input type="text" id="firstname" name="firstname" placeholder="firstname" required><br />
         <input type="text" id="lastname" name="lastname" placeholder="lastname" required><br />
         <input type="email" id="email" name="email" placeholder="Email" required><br />
+        <label for="authenticatorType">Auth Type:</label>
+        <select id="authenticatorType" name="authenticatorType">
+            <option value="platform">Platform (e.g., built-in biometrics, passkey)</option>
+            <option value="cross-platform">Cross-Platform (e.g., YubiKey)</option>
+        </select><br />
         <button type="button" onclick="register()">Register</button>
     </form>
 
@@ -20,12 +25,13 @@
                 const firstname = document.getElementById('firstname').value;
                 const lastname = document.getElementById('lastname').value;
                 const email = document.getElementById('email').value;
+                const authenticatorType = document.getElementById('authenticatorType').value;
     
                 // Fetch registration options
                 const response = await fetch('/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ firstname, lastname, email })
+                    body: JSON.stringify({ firstname, lastname, email, authenticatorType })
                 });
                 const options = await response.json();
     

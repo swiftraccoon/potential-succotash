@@ -26,9 +26,10 @@
                     body: JSON.stringify({ email })
                 });
                 const options = await optionsResponse.json();
-
+                console.log("login/script/step1/options:", options);
                 // Step 2: Start authentication process
                 const authenticationResponse = await window.SimpleWebAuthnBrowser.startAuthentication(options);
+                console.log("login/script/step2/authenticationResponse:", authenticationResponse);
                 // Make sure to convert the credential ID back to the expected format if necessary
                 authenticationResponse.rawId = Uint8Array.from(atob(authenticationResponse.rawId), c => c.charCodeAt(0));
                 // Step 3: Send authentication response for verification
@@ -39,8 +40,10 @@
                     },
                     body: JSON.stringify({ email, response: authenticationResponse })
                 });
+                console.log("login/script/step3/verificationResponse:", verificationResponse);
 
                 const verificationResult = await verificationResponse.json();
+                console.log("login/script/step4/verificationResult:", verificationResult);
                 if (verificationResult.success) {
                     window.location.href = '/'; // Redirect to home page
                 } else {

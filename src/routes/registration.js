@@ -11,7 +11,11 @@ router.get('/register', async (req, res) => {
 
 router.post('/register', async (req, res) => {
     try {
-        const { firstname, lastname, email } = req.body;
+        const { firstname, lastname, email, authenticatorType } = req.body;
+        // Check if all required fields are provided
+        if (!firstname || !lastname || !email || !authenticatorType) {
+            return res.status(400).json({ success: false, message: "Missing required fields" });
+        }
         const user = new User({
             firstName: firstname,
             lastName: lastname,
@@ -19,8 +23,15 @@ router.post('/register', async (req, res) => {
         });
         await user.save();
         // console.log("registration/register/user:", user)
-
-        const options = await webauthn.getRegistrationOptions(user);
+        // console.log("registration/register/authenticatorType:", authenticatorType)
+        const options = await webauthn.getRegistrationOptions({
+            user,
+            authenticatorSelection: {
+                authenticatorAttachment: authenticatorType,
+                requireResidentKey: false,
+                userVerification: 'preferred'
+            }
+        });
         // console.log("registration/register/options:", options)
         // Store the challenge in the session
         req.session.challenge = options.challenge;
