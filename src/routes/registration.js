@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const webauthn = require('../webauthn');
 const User = require('../models/User');
+const session = require('express-session');
 
 // Endpoint to get registration page
 router.get('/register', async (req, res) => {
@@ -21,6 +22,8 @@ router.post('/register', async (req, res) => {
 
         const options = await webauthn.getRegistrationOptions(user);
         console.log("registration/register/options:", options)
+        // Store the challenge in the session
+        req.session.challenge = options.challenge;
         res.json(options);
     } catch (error) {
         res.status(500).json({ success: false, message: "Error during registration", error: error.message });
@@ -35,8 +38,11 @@ router.post('/register/response', async (req, res) => {
         console.log("registration/register/response/email:", email)
         console.log("registration/register/response/response:", response)
 
-        const verification = await webauthn.verifyRegistration(user, response);
-        console.log("registration/register/response/verification:", verification)
+        // Retrieve the stored challenge
+        const storedChallenge = req.session.challenge;
+
+        const verification = await webauthn.verifyRegistration(user, response, storedChallenge);
+        console.log("registration/register/response/verification:", await verification)
         if (verification) {
             await user.save();
             res.json({ success: true, message: "Registration successful" });

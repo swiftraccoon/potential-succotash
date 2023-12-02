@@ -1,7 +1,7 @@
 const { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse } = require('@simplewebauthn/server');
 const User = require('./models/User');
 
-const rpID = 'localhost'; // Replace with your domain
+const rpID = 'localhost:3002'; // Replace with your domain
 const rpName = 'Localhost Dev'; // Replace with your organization name
 
 async function getRegistrationOptions(user) {
@@ -28,15 +28,15 @@ async function getRegistrationOptions(user) {
     return options;
 }
 
-async function verifyRegistration(user, response) {
+async function verifyRegistration(user, response, storedChallenge) {
     const verification = verifyRegistrationResponse({
         response: response,
-        expectedChallenge: 'YOUR_STORED_CHALLENGE', // Retrieve the stored challenge
+        expectedChallenge: storedChallenge, // Retrieve the stored challenge
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
         // ... other necessary verification parameters
     });
-    console.log("webauthn/verifyRegistration/verification: ", verification)
+    console.log("webauthn/verifyRegistration/verification: ", await verification)
 
     if (verification.verified) {
         user.authenticators.push({
