@@ -8,7 +8,6 @@
     <h2>Login</h2>
     <form id="loginForm">
         <input type="email" id="email" name="email" placeholder="Email" required><br />
-        <!-- Add other fields as necessary -->
         <button type="button" onclick="login()">Login</button>
     </form>
 
@@ -17,28 +16,33 @@
         async function login() {
             try {
                 const email = document.getElementById('email').value;
-                const response = await fetch('/login', {
+
+                // Step 1: Request authentication options
+                const optionsResponse = await fetch('/auth/login/options', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ email })
                 });
-                const options = await response.json();
+                const options = await optionsResponse.json();
 
+                // Step 2: Start authentication process
                 const authenticationResponse = await window.SimpleWebAuthnBrowser.startAuthentication(options);
-
-                const verificationResponse = await fetch('/login', {
+                // Make sure to convert the credential ID back to the expected format if necessary
+                authenticationResponse.rawId = Uint8Array.from(atob(authenticationResponse.rawId), c => c.charCodeAt(0));
+                // Step 3: Send authentication response for verification
+                const verificationResponse = await fetch('/auth/login/response', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(authenticationResponse)
+                    body: JSON.stringify({ email, response: authenticationResponse })
                 });
 
                 const verificationResult = await verificationResponse.json();
                 if (verificationResult.success) {
-                    window.location.href = '/home'; // Redirect to home page
+                    window.location.href = '/'; // Redirect to home page
                 } else {
                     alert('Login failed');
                 }

@@ -22,32 +22,40 @@ async function getRegistrationOptions(user) {
             type: 'public-key',
             transports: ['usb', 'nfc', 'ble'], // Specify allowed transports
         })),
-        // ... other options as needed
     });
 
     return options;
 }
 
 async function verifyRegistration(user, response, storedChallenge) {
-    const verification = verifyRegistrationResponse({
-        response: response,
-        expectedChallenge: storedChallenge, // Retrieve the stored challenge
-        expectedOrigin: `https://${rpID}`,
-        expectedRPID: rpID,
-        // ... other necessary verification parameters
-    });
-    console.log("webauthn/verifyRegistration/verification: ", await verification)
-
-    if (verification.verified) {
-        user.authenticators.push({
-            credentialID: verification.registrationInfo.credentialID,
-            credentialPublicKey: verification.registrationInfo.credentialPublicKey,
-            counter: verification.registrationInfo.counter,
+    try {
+        const verification = await verifyRegistrationResponse({
+            response: response,
+            expectedChallenge: storedChallenge,
+            expectedOrigin: `https://${rpID}`,
+            expectedRPID: rpID,
         });
-        await user.save();
-    }
 
-    return verification.verified;
+        // console.log("webauthn/verifyRegistration/verification: ", verification);
+
+        if (verification.verified) {
+            // Convert Uint8Array to Buffer
+            const credentialIDBuffer = Buffer.from(verification.registrationInfo.credentialID);
+            const credentialPublicKeyBuffer = Buffer.from(verification.registrationInfo.credentialPublicKey);
+
+            user.authenticators.push({
+                credentialID: credentialIDBuffer,
+                credentialPublicKey: credentialPublicKeyBuffer,
+                counter: verification.registrationInfo.counter,
+            });
+            await user.save();
+        }
+
+        return verification.verified;
+    } catch (error) {
+        console.error("Error in verifyRegistration:", error);
+        return false;
+    }
 }
 
 // Function to get authentication options
@@ -55,13 +63,11 @@ async function getAuthenticationOptions(userId) {
     const user = await User.findById(userId);
     const authenticators = user.authenticators.map(auth => ({
         credentialID: auth.credentialID,
-        // Add other necessary fields
     }));
 
     const options = generateAuthenticationOptions({
         allowCredentials: authenticators,
         userVerification: 'preferred',
-        // Add other necessary options
     });
 
     return options;
@@ -81,12 +87,10 @@ async function verifyAuthentication(userId, response) {
         expectedAuthenticator: {
             credentialPublicKey: expectedAuthenticator.credentialPublicKey,
             counter: expectedAuthenticator.counter,
-            // Add other necessary fields
         },
         expectedChallenge: '',
         expectedOrigin: `https://${rpID}`,
         expectedRPID: rpID,
-        // Add other necessary verification parameters
     });
 
     if (verification.verified) {
