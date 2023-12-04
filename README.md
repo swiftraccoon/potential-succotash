@@ -1,6 +1,6 @@
-# sdrtrunk-transcribed-web
+# rfTranscriptionHub
 
-Node.JS website to display audio and transcriptions from [cpp-sdrtrunk-transcriber](https://github.com/swiftraccoon/cpp-sdrtrunk-transcriber)
+NodeJS website to display/interact with incoming audio and transcriptions from [cpp-sdrtrunk-transcriber](https://github.com/swiftraccoon/cpp-sdrtrunk-transcriber)
 
 
 ## Overview
