@@ -4,8 +4,11 @@ const {
   verifyRegistrationResponse,
   verifyAuthenticationResponse,
 } = require("@simplewebauthn/server");
+const {
+  isoBase64URL,
+  isoUint8Array,
+} = require("@simplewebauthn/server/helpers");
 const User = require("./models/User");
-const { Binary } = require("mongodb");
 
 const rpID = "localhost"; // Replace with your domain
 const rpName = "Localhost Dev"; // Replace with your organization name
@@ -114,14 +117,19 @@ async function verifyAuthentication(userId, response) {
     storedChallenge
   );
   console.log("webauthn/verifyAuthentication/response:", response);
-  let responseIdBase64 = response.id.replace(/-/g, "+").replace(/_/g, "/");
-  let responseIdBinary = Binary.createFromBase64(responseIdBase64, 0);
-  let expectedAuthenticator = await user.authenticators.find((auth) =>
-    auth.credentialID.equals(responseIdBinary)
-  );
+  let responseIdBuffer = isoBase64URL.toBuffer(response.id);
+  let expectedAuthenticator = user.authenticators.find((auth) => {
+    let authIdBase64 = auth.credentialID.buffer.toString("base64");
+    let authIdUrlSafeBase64 = authIdBase64
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    let responseIdBase64 = responseIdBuffer.toString("base64");
+    let regex = new RegExp(responseIdBase64);
+  });
   if (!expectedAuthenticator) {
     throw new Error(
-      `Could not find authenticator for response ID${response.id} for auth ID ${auth.credentialID}`
+      `Could not match authenticator with id ${response.id} to any registered authenticators`
     );
   }
   console.log(
